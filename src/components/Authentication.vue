@@ -3,8 +3,8 @@
     <el-container>
       <el-header>
         <el-radio-group v-model="mode" size="large">
-          <el-radio-button label="Register" />
           <el-radio-button label="Login" />
+          <el-radio-button label="Register" />
           <el-radio-button label="ChangePassword" />
         </el-radio-group>
       </el-header>
@@ -38,6 +38,9 @@
                 </el-form-item>
                 <el-form-item>
                   <el-button type="primary" style="width: 100%" @click="login_submit()">Login</el-button>
+                </el-form-item>
+                <el-form-item label="Token" v-if="isLogin">
+                  <el-input v-model="form_login.pw" />
                 </el-form-item>
               </el-form>
             </div>
@@ -81,7 +84,7 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import type { Action } from 'element-plus'
 import axios from 'axios'
 import server from '@/config'
-const mode = ref('Register');
+const mode = ref('Login');
 const form_register = reactive({
   name: '',
   pw: '',
@@ -160,6 +163,7 @@ const register_submit = () => {
     })
   }
 };
+const isLogin = ref(false);
 const login_submit = () => {
   check_server(() => {
     const data = {
@@ -170,7 +174,14 @@ const login_submit = () => {
       headers: {'Content-Type': 'application/json'}
     })
     .then((response) => {
-      console.log(response)
+      if (response.data.success) {
+        isLogin.value = true;
+      }
+      else {
+        ElMessageBox.alert(`Error: ${response.data.message}`, 'Error', {
+          confirmButtonText: 'OK'
+        })
+      }
     })
     .catch((error) => {
       console.log(error)
