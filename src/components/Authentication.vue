@@ -143,11 +143,11 @@ const register_submit = () => {
   }
   else {
     check_server(() => {
-      const data = JSON.stringify({
+      const data = {
         username: form_register.name,
         password: form_register.pw,
         password_confirmation: form_register.rpw
-      })
+      }
       axios.post(`${server.http}://${server.domain}:${server.port}/authentication/register`, data)
       .then((response) => {
         console.log(response)
@@ -160,10 +160,10 @@ const register_submit = () => {
 };
 const login_submit = () => {
   check_server(() => {
-    const data = JSON.stringify({
+    const data = {
       username: form_login.name,
       password: form_login.pw
-    })
+    }
     axios.post(`${server.http}://${server.domain}:${server.port}/authentication/login`, data)
     .then((response) => {
       console.log(response)
@@ -188,12 +188,12 @@ const changepw_submit = () => {
   }
   else {
     check_server(() => {
-      const data = JSON.stringify({
+      const data = {
         username: form_changepw.name,
         new_password: form_changepw.new_pw,
         new_password_confirmation: form_changepw.new_rpw,
         old_password: form_changepw.old_pw
-      })
+      }
       axios.post(`${server.http}://${server.domain}:${server.port}/authentication/change_password`, data)
       .then((response) => {
         console.log(response)
