@@ -148,7 +148,9 @@ const register_submit = () => {
         password: form_register.pw,
         password_confirmation: form_register.rpw
       }
-      axios.post(`${server.http}://${server.domain}:${server.port}/authentication/register`, data)
+      axios.post(`${server.http}://${server.domain}:${server.port}/authentication/register`, data, {
+        headers: {'Content-Type': 'application/json'}
+      })
       .then((response) => {
         console.log(response)
       })
@@ -164,7 +166,9 @@ const login_submit = () => {
       username: form_login.name,
       password: form_login.pw
     }
-    axios.post(`${server.http}://${server.domain}:${server.port}/authentication/login`, data)
+    axios.post(`${server.http}://${server.domain}:${server.port}/authentication/login`, data, {
+      headers: {'Content-Type': 'application/json'}
+    })
     .then((response) => {
       console.log(response)
     })
@@ -194,7 +198,9 @@ const changepw_submit = () => {
         new_password_confirmation: form_changepw.new_rpw,
         old_password: form_changepw.old_pw
       }
-      axios.post(`${server.http}://${server.domain}:${server.port}/authentication/change_password`, data)
+      axios.post(`${server.http}://${server.domain}:${server.port}/authentication/change_password`, data, {
+        headers: {'Content-Type': 'application/json'}
+      })
       .then((response) => {
         console.log(response)
       })
