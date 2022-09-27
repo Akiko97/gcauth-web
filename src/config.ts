@@ -1,6 +1,6 @@
 const server = {
     http: 'https',
-    domain: 'hk.gabzhong.dev',
+    domain: 'example.com',
     port: '443'
 }
 
