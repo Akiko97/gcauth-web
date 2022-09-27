@@ -15,51 +15,66 @@
             <div class="register-table" v-if="mode=='Register'">
               <el-form :model="form_register" label-width="20%">
                 <el-form-item label="UserName">
-                  <el-input v-model="form_register.name" />
+                  <el-input v-model="form_register.name" placeholder="Username" />
                 </el-form-item>
                 <el-form-item label="Password">
-                  <el-input v-model="form_register.pw" type="password" show-password />
+                  <el-input v-model="form_register.pw" type="password" show-password placeholder="Password must be greater than 8 digits" />
                 </el-form-item>
                 <el-form-item label="Re-type Password">
-                  <el-input v-model="form_register.rpw" type="password" show-password />
+                  <el-input v-model="form_register.rpw" type="password" show-password placeholder="Password must be greater than 8 digits" />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" style="width: 100%" @click="register_submit()">Register</el-button>
+                  <el-button
+                    type="primary"
+                    style="width: 100%"
+                    @click="register_submit()"
+                    :disabled="form_register.pw.length<8&&form_register.rpw.length<8"
+                  >Register</el-button>
                 </el-form-item>
               </el-form>
             </div>
             <div class="login-table" v-if="mode=='Login'">
               <el-form :model="form_login" label-width="20%">
                 <el-form-item label="UserName">
-                  <el-input v-model="form_login.name" />
+                  <el-input v-model="form_login.name" placeholder="Username" />
                 </el-form-item>
                 <el-form-item label="Password">
-                  <el-input v-model="form_login.pw" type="password" show-password />
+                  <el-input v-model="form_login.pw" type="password" show-password placeholder="Password must be greater than 8 digits" />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" style="width: 100%" @click="login_submit()">Login</el-button>
+                  <el-button
+                    type="primary"
+                    style="width: 100%"
+                    @click="login_submit()"
+                    :disabled="form_login.pw.length<8"
+                  >Login</el-button>
                 </el-form-item>
                 <el-form-item label="Token" v-if="isLogin">
-                  <el-input v-model="form_login.pw" />
+                  <el-input v-model="token" />
                 </el-form-item>
               </el-form>
             </div>
             <div class="changepw-table" v-if="mode=='ChangePassword'">
               <el-form :model="form_changepw" label-width="20%">
                 <el-form-item label="UserName">
-                  <el-input v-model="form_changepw.name" />
+                  <el-input v-model="form_changepw.name" placeholder="Username" />
                 </el-form-item>
                 <el-form-item label="Old Password">
-                  <el-input v-model="form_changepw.old_pw" type="password" show-password />
+                  <el-input v-model="form_changepw.old_pw" type="password" show-password placeholder="Password must be greater than 8 digits" />
                 </el-form-item>
                 <el-form-item label="New Password">
-                  <el-input v-model="form_changepw.new_pw" type="password" show-password />
+                  <el-input v-model="form_changepw.new_pw" type="password" show-password placeholder="Password must be greater than 8 digits" />
                 </el-form-item>
                 <el-form-item label="Re-type Password">
-                  <el-input v-model="form_changepw.new_rpw" type="password" show-password />
+                  <el-input v-model="form_changepw.new_rpw" type="password" show-password placeholder="Password must be greater than 8 digits" />
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" style="width: 100%" @click="changepw_submit()">Change Password</el-button>
+                  <el-button
+                    type="primary"
+                    style="width: 100%"
+                    @click="changepw_submit()"
+                    :disabled="form_changepw.old_pw.length<8&&form_changepw.new_pw.length<8&&form_changepw.new_rpw.length<8"
+                  >Change Password</el-button>
                 </el-form-item>
               </el-form>
             </div>
@@ -84,6 +99,7 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import type { Action } from 'element-plus'
 import axios from 'axios'
 import server from '@/config'
+import decode from 'jwt-decode'
 const mode = ref('Login');
 const form_register = reactive({
   name: '',
@@ -155,15 +171,37 @@ const register_submit = () => {
         headers: {'Content-Type': 'application/json'}
       })
       .then((response) => {
-        console.log(response)
+        if (response.data.success) {
+          ElNotification({
+            title: 'Success',
+            message: 'Register Success!',
+            type: 'success',
+          })
+        }
+        else {
+          ElMessageBox.alert(`Error: ${response.data.message}`, 'Error', {
+            confirmButtonText: 'OK'
+          })
+        }
       })
       .catch((error) => {
-        console.log(error)
+        ElNotification({
+          title: 'Oops!',
+          message: 'Something went wrong!',
+          type: 'error'
+        })
       })
     })
   }
 };
 const isLogin = ref(false);
+const token = ref('');
+type jwt_t = {
+  uid: number,
+  exp: number,
+  token: string,
+  username: string
+}
 const login_submit = () => {
   check_server(() => {
     const data = {
@@ -176,6 +214,13 @@ const login_submit = () => {
     .then((response) => {
       if (response.data.success) {
         isLogin.value = true;
+        const jwtdata: jwt_t = decode(response.data.jwt);
+        token.value = jwtdata.token;
+        ElNotification({
+          title: 'Success',
+          message: 'Login Success! Got login token.',
+          type: 'success',
+        })
       }
       else {
         ElMessageBox.alert(`Error: ${response.data.message}`, 'Error', {
@@ -184,7 +229,11 @@ const login_submit = () => {
       }
     })
     .catch((error) => {
-      console.log(error)
+      ElNotification({
+        title: 'Oops!',
+        message: 'Something went wrong!',
+        type: 'error'
+      })
     })
   })
 };
@@ -213,10 +262,25 @@ const changepw_submit = () => {
         headers: {'Content-Type': 'application/json'}
       })
       .then((response) => {
-        console.log(response)
+        if (response.data.success) {
+          ElNotification({
+            title: 'Success',
+            message: 'Change password Success!',
+            type: 'success',
+          })
+        }
+        else {
+          ElMessageBox.alert(`Error: ${response.data.message}`, 'Error', {
+            confirmButtonText: 'OK'
+          })
+        }
       })
       .catch((error) => {
-        console.log(error)
+        ElNotification({
+          title: 'Oops!',
+          message: 'Something went wrong!',
+          type: 'error'
+        })
       })
     })
   }
